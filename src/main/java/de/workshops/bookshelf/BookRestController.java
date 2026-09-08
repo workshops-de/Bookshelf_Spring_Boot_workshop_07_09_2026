@@ -1,10 +1,8 @@
 package de.workshops.bookshelf;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,13 +12,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestController
@@ -28,58 +25,36 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Validated
 public class BookRestController {
 
-    private final ObjectMapper mapper;
+    private final BookService service;
 
-    private final ResourceLoader resourceLoader;
-
-    private List<Book> books;
-
-    public BookRestController(ObjectMapper mapper, ResourceLoader resourceLoader) {
-        this.mapper = mapper;
-        this.resourceLoader = resourceLoader;
-    }
-
-    @PostConstruct
-    public void init() throws IOException {
-        final var resource = resourceLoader.getResource("classpath:books.json");
-        this.books = mapper.readValue(resource.getInputStream(), new TypeReference<>() {
-        });
+    public BookRestController(BookService service) {
+        this.service = service;
     }
 
     @GetMapping
     public List<Book> getAllBooks() {
-        return books;
+        return service.getAllBooks();
     }
 
     @GetMapping("/{isbn}")
     public Book getSingleBook(@PathVariable String isbn) {
-        return this.books.stream()
-                .filter(book -> hasIsbn(book, isbn))
-                .findFirst()
-                .orElseThrow(() -> new BookNotFoundException("ISBN: " + isbn));
+        return service.getSingleBook(isbn);
     }
 
     @GetMapping(params = "author")
     public List<Book> searchBooksByAuthor(@RequestParam("author") @NotBlank @Size(min = 3) String author) {
-        return this.books.stream()
-                .filter(book -> hasAuthor(book, author))
-                .toList();
+        return service.searchBooksByAuthor(author);
     }
 
     @PostMapping("/search")
     public List<Book> searchBooks(@RequestBody @Valid BookSearchRequest request) {
-        return this.books.stream()
-                .filter(book -> request.getIsbn() == null || hasIsbn(book, request.getIsbn()))
-                .filter(book -> request.getAuthor() == null || hasAuthor(book, request.getAuthor()))
-                .toList();
+        return service.searchBooks(request);
     }
 
-    private boolean hasIsbn(Book book, String isbn) {
-        return book.getIsbn().equals(isbn);
-    }
-
-    private boolean hasAuthor(Book book, String author) {
-        return book.getAuthor().contains(author);
+    @PostMapping
+    @ResponseStatus(CREATED)
+    public void saveBook(@RequestBody @Valid Book book) {
+        service.saveBook(book);
     }
 
     @ExceptionHandler
