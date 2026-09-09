@@ -3,6 +3,7 @@ package de.workshops.bookshelf;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +21,7 @@ import java.util.List;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
+@Slf4j
 @RestController
 @RequestMapping("/book")
 @Validated
@@ -27,8 +29,11 @@ public class BookRestController {
 
     private final BookService service;
 
-    public BookRestController(BookService service) {
+    private final BoookshelfProperties properties;
+
+    public BookRestController(BookService service, BoookshelfProperties properties) {
         this.service = service;
+        this.properties = properties;
     }
 
     @GetMapping
@@ -54,6 +59,8 @@ public class BookRestController {
     @PostMapping
     @ResponseStatus(CREATED)
     public void saveBook(@RequestBody @Valid Book book) {
+        log.info("ISBN Lookup as '{}' using {}", properties.getOwner(), properties.getIsbnLookup().getUrl());
+
         service.saveBook(book);
     }
 
