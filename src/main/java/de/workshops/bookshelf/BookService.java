@@ -14,24 +14,20 @@ public class BookService {
     }
 
     public List<Book> getAllBooks() {
-        return repository.getAllBooks();
+        return repository.findAll();
     }
 
     public Book getSingleBook(String isbn) {
-        return repository.getAllBooks().stream()
-                .filter(book -> hasIsbn(book, isbn))
-                .findFirst()
+        return repository.findBookByIsbn(isbn)
                 .orElseThrow(() -> new BookNotFoundException("ISBN: " + isbn));
     }
 
     public List<Book> searchBooksByAuthor(String author) {
-        return repository.getAllBooks().stream()
-                .filter(book -> hasAuthor(book, author))
-                .toList();
+        return repository.findAllByAuthorContains(author);
     }
 
     public List<Book> searchBooks(BookSearchRequest request) {
-        return repository.getAllBooks().stream()
+        return repository.findAll().stream()
                 .filter(book -> request.getIsbn() == null || hasIsbn(book, request.getIsbn()))
                 .filter(book -> request.getAuthor() == null || hasAuthor(book, request.getAuthor()))
                 .toList();
@@ -46,6 +42,6 @@ public class BookService {
     }
 
     public void saveBook(Book book) {
-        repository.saveBook(book);
+        repository.save(book);
     }
 }
