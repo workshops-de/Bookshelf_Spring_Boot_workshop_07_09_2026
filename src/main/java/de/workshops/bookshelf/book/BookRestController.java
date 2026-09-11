@@ -1,10 +1,11 @@
-package de.workshops.bookshelf;
+package de.workshops.bookshelf.book;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,6 +58,7 @@ public class BookRestController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(CREATED)
     public void saveBook(@RequestBody @Valid Book book) {
         log.info("ISBN Lookup as '{}' using {}", properties.getOwner(), properties.getIsbnLookup().getUrl());

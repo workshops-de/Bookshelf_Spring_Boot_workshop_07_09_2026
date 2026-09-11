@@ -1,4 +1,4 @@
-package de.workshops.bookshelf;
+package de.workshops.bookshelf.book;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

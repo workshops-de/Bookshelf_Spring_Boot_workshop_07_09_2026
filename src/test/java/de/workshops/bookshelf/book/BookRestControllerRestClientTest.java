@@ -1,9 +1,15 @@
-package de.workshops.bookshelf;
+package de.workshops.bookshelf.book;
 
+import de.workshops.bookshelf.user.User;
+import de.workshops.bookshelf.user.UserRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.client.support.BasicAuthenticationInterceptor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
@@ -15,8 +21,36 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureRestTestClient
 class BookRestControllerRestClientTest {
 
-    @Autowired
     RestTestClient restClient;
+
+    User admin;
+
+    @BeforeEach
+    void setUp(
+            @Autowired UserRepository userRepository,
+            @Autowired PasswordEncoder passwordEncoder,
+            @Autowired RestTestClient restClient
+    ) {
+        String username = "user";
+        String password = "password";
+
+        admin = new User();
+        admin.setUsername(username);
+        admin.setPassword(passwordEncoder.encode(password));
+        admin.setRole("ROLE_ADMIN");
+        admin = userRepository.save(admin);
+
+        this.restClient = restClient.mutate()
+                .requestInterceptor(new BasicAuthenticationInterceptor(username, password))
+                .build();
+    }
+
+    @AfterEach
+    void tearDown(
+            @Autowired UserRepository userRepository
+    ) {
+        userRepository.delete(admin);
+    }
 
     @Test
     void getAllBooks() {

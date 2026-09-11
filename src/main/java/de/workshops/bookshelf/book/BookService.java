@@ -1,4 +1,4 @@
-package de.workshops.bookshelf;
+package de.workshops.bookshelf.book;
 
 import org.springframework.stereotype.Service;
 

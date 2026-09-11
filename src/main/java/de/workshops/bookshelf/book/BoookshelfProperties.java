@@ -1,4 +1,4 @@
-package de.workshops.bookshelf;
+package de.workshops.bookshelf.book;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
